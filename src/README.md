@@ -80,7 +80,7 @@ account used for AWS SSO, create the following parameter:
 Within the Google Cloud console, we need to create a new Google Project and Service Account and enable the Admin SDK
 API. Follow these steps:
 
-1. Open the Google Cloud console: https://console.cloud.google.com
+
 2. Create a new project. Give the project a descriptive name such as `AWS SSO Sync`
 3. Enable Admin SDK in APIs: `APIs & Services > Enabled APIs & Services > + ENABLE APIS AND SERVICES`
 
@@ -88,19 +88,19 @@ API. Follow these steps:
 use raw URL so that this works in both GitHub and docusaurus
 
 4. Create Service Account: `IAM & Admin > Service Accounts > Create Service Account`
-   [(ref)](https://cloud.google.com/iam/docs/service-accounts-create).
+  [(ref)](https://cloud.google.com/iam/docs/service-accounts-create).
 
 ![Create Service Account](https://raw.githubusercontent.com/cloudposse/terraform-aws-components/main/modules/aws-ssosync/docs/img/create_service_account.png) #
 use raw URL so that this works in both GitHub and docusaurus
 
 5. Download credentials for the new Service Account:
-   `IAM & Admin > Service Accounts > select Service Account > Keys > ADD KEY > Create new key > JSON`
+  `IAM & Admin > Service Accounts > select Service Account > Keys > ADD KEY > Create new key > JSON`
 
 ![Download Credentials](https://raw.githubusercontent.com/cloudposse/terraform-aws-components/main/modules/aws-ssosync/docs/img/dl_service_account_creds.png) #
 use raw URL so that this works in both GitHub and docusaurus
 
 6. Save the JSON credentials as a new `SecureString` AWS SSM parameter in the same account used for AWS SSO. Use the
-   full JSON string as the value for the parameter.
+  full JSON string as the value for the parameter.
 
 ```
 /ssosync/google_credentials

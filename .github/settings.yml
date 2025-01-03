@@ -5,3 +5,4 @@ repository:
   description: Deploys AWS ssosync to sync Google Groups with AWS SSO
   homepage: https://cloudposse.com/accelerate
   topics: terraform, terraform-component
+
