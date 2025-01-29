@@ -39,7 +39,7 @@ module "ssosync_artifact" {
 
   filename    = local.download_artifact
   module_name = "ssosync"
-  module_path = path.module
+  module_path = "${path.module}/dist/"
   url         = local.ssosync_artifact_url
 }
 
@@ -47,7 +47,7 @@ resource "null_resource" "extract_my_tgz" {
   count = local.enabled ? 1 : 0
 
   provisioner "local-exec" {
-    command = "tar -xzf ${local.download_artifact}"
+    command = "tar -xzf ${local.download_artifact} -C dist"
   }
 
   depends_on = [module.ssosync_artifact]
@@ -57,7 +57,7 @@ data "archive_file" "lambda" {
   count = local.enabled ? 1 : 0
 
   type        = "zip"
-  source_file = "ssosync"
+  source_file = "dist/ssosync"
   output_path = "ssosync.zip"
 
   depends_on = [null_resource.extract_my_tgz]
