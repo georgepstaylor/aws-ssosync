@@ -57,7 +57,7 @@ data "archive_file" "lambda" {
   count = local.enabled ? 1 : 0
 
   type        = "zip"
-  source_file = "dist/ssosync"
+  source_file = "ssosync"
   output_path = "ssosync.zip"
 
   depends_on = [null_resource.extract_my_tgz]
