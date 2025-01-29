@@ -40,7 +40,7 @@ variable "ssosync_url_prefix" {
 variable "ssosync_version" {
   type        = string
   description = "Version of ssosync to use"
-  default     = "v2.0.2"
+  default     = "2.0.2"
 }
 
 variable "architecture" {
