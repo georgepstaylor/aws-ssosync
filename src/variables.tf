@@ -3,6 +3,11 @@ variable "region" {
   description = "AWS Region where AWS SSO is enabled"
 }
 
+variable "name" {
+  type        = string
+  description = "Name of the Lambda function"
+}
+
 variable "schedule_expression" {
   type        = string
   description = "Schedule for trigger the execution of ssosync (see CloudWatch schedule expressions)"

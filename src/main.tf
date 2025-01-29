@@ -4,71 +4,34 @@ locals {
   scim_endpoint_url          = one(data.aws_ssm_parameter.scim_endpoint_url[*].value)
   scim_endpoint_access_token = one(data.aws_ssm_parameter.scim_endpoint_access_token[*].value)
   identity_store_id          = one(data.aws_ssm_parameter.identity_store_id[*].value)
-
-  ssosync_artifact_url = "${var.ssosync_url_prefix}/${var.ssosync_version}/ssosync_Linux_${var.architecture}.tar.gz"
-
-  download_artifact = "ssosync.tar.gz"
 }
 
 data "aws_ssm_parameter" "google_credentials" {
-  count = local.enabled ? 1 : 0
   name  = "${var.google_credentials_ssm_path}/google_credentials"
 }
 
 data "aws_ssm_parameter" "scim_endpoint_url" {
-  count = local.enabled ? 1 : 0
   name  = "${var.google_credentials_ssm_path}/scim_endpoint_url"
 }
 
 data "aws_ssm_parameter" "scim_endpoint_access_token" {
-  count = local.enabled ? 1 : 0
   name  = "${var.google_credentials_ssm_path}/scim_endpoint_access_token"
 }
 
 data "aws_ssm_parameter" "identity_store_id" {
-  count = local.enabled ? 1 : 0
   name  = "${var.google_credentials_ssm_path}/identity_store_id"
 }
 
-
-module "ssosync_artifact" {
-  count = local.enabled ? 1 : 0
-
-  source  = "cloudposse/module-artifact/external"
-  version = "0.8.0"
-
-  filename    = local.download_artifact
-  module_name = "ssosync"
-  module_path = "${path.module}/dist/"
-  url         = local.ssosync_artifact_url
-}
-
-resource "null_resource" "extract_my_tgz" {
-  count = local.enabled ? 1 : 0
-
-  provisioner "local-exec" {
-    command = "tar -xzf ${local.download_artifact} -C dist"
-  }
-
-  depends_on = [module.ssosync_artifact]
-}
-
 data "archive_file" "lambda" {
-  count = local.enabled ? 1 : 0
-
   type        = "zip"
   source_file = "dist/ssosync"
   output_path = "ssosync.zip"
-
-  depends_on = [null_resource.extract_my_tgz]
 }
 
 
 resource "aws_lambda_function" "ssosync" {
-  count = local.enabled ? 1 : 0
-
-  function_name    = module.this.id
-  filename         = "ssosync.zip"
+  function_name    = var.name
+  filename         = "dist/ssosync.zip"
   source_code_hash = module.ssosync_artifact[0].base64sha256
   description      = "Syncs Google Workspace users and groups to AWS SSO"
   role             = aws_iam_role.default[0].arn
@@ -96,23 +59,19 @@ resource "aws_lambda_function" "ssosync" {
       SSOSYNC_LOAD_ASM_SECRETS   = false
     }
   }
-  depends_on = [null_resource.extract_my_tgz, data.archive_file.lambda]
+  depends_on = [data.archive_file.lambda]
 }
 
 resource "aws_cloudwatch_event_rule" "ssosync" {
-  count = var.enabled ? 1 : 0
-
-  name                = module.this.id
+  name                = var.name
   description         = "Run ssosync on a schedule"
   schedule_expression = var.schedule_expression
 
 }
 
 resource "aws_cloudwatch_event_target" "ssosync" {
-  count = var.enabled ? 1 : 0
-
   rule      = aws_cloudwatch_event_rule.ssosync[0].name
-  target_id = module.this.id
+  target_id = var.name
   arn       = aws_lambda_function.ssosync[0].arn
 }
 
