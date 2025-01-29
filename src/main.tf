@@ -1,5 +1,4 @@
 locals {
-  enabled                    = module.this.enabled
   google_credentials         = one(data.aws_ssm_parameter.google_credentials[*].value)
   scim_endpoint_url          = one(data.aws_ssm_parameter.scim_endpoint_url[*].value)
   scim_endpoint_access_token = one(data.aws_ssm_parameter.scim_endpoint_access_token[*].value)
@@ -24,17 +23,17 @@ data "aws_ssm_parameter" "identity_store_id" {
 
 data "archive_file" "lambda" {
   type        = "zip"
-  source_file = "dist/ssosync"
-  output_path = "ssosync.zip"
+  source_file = "${path.module}/dist/ssosync"
+  output_path = "${path.module}/dist/ssosync.zip"
 }
 
 
 resource "aws_lambda_function" "ssosync" {
-  function_name    = var.name
-  filename         = "dist/ssosync.zip"
-  source_code_hash = module.ssosync_artifact[0].base64sha256
+  function_name    = "${var.name}-function"
+  filename         = data.archive_file.lambda.output_path
+  source_code_hash = data.archive_file.lambda.output_sha256
   description      = "Syncs Google Workspace users and groups to AWS SSO"
-  role             = aws_iam_role.default[0].arn
+  role             = aws_iam_role.default.arn
   handler          = "ssosync"
   runtime          = "go1.x"
   timeout          = 300
@@ -63,25 +62,22 @@ resource "aws_lambda_function" "ssosync" {
 }
 
 resource "aws_cloudwatch_event_rule" "ssosync" {
-  name                = var.name
+  name                = "${var.name}-event-rule"
   description         = "Run ssosync on a schedule"
   schedule_expression = var.schedule_expression
 
 }
 
 resource "aws_cloudwatch_event_target" "ssosync" {
-  rule      = aws_cloudwatch_event_rule.ssosync[0].name
-  target_id = var.name
-  arn       = aws_lambda_function.ssosync[0].arn
+  rule      = aws_cloudwatch_event_rule.ssosync.name
+  arn       = aws_lambda_function.ssosync.arn
 }
 
 
 resource "aws_lambda_permission" "allow_cloudwatch_execution" {
-  count = local.enabled ? 1 : 0
-
   statement_id  = "AllowExecutionFromCloudWatch"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.ssosync[0].arn
+  function_name = aws_lambda_function.ssosync.arn
   principal     = "events.amazonaws.com"
-  source_arn    = aws_cloudwatch_event_rule.ssosync[0].arn
+  source_arn    = aws_cloudwatch_event_rule.ssosync.arn
 }

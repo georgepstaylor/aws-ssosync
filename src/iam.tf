@@ -35,9 +35,8 @@ data "aws_iam_policy_document" "ssosync_lambda_identity_center" {
 }
 
 resource "aws_iam_role" "default" {
-  count = local.enabled ? 1 : 0
 
-  name               = module.this.id
+  name               = "${var.name}-lambda-role"
   assume_role_policy = data.aws_iam_policy_document.ssosync_lambda_assume_role.json
 
   inline_policy {

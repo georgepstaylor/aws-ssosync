@@ -5,7 +5,13 @@ variable "region" {
 
 variable "name" {
   type        = string
-  description = "Name of the Lambda function"
+  description = "Name prefix for the resources"
+}
+
+variable "tags" {
+  type        = map(string)
+  description = "Tags to apply to the resources"
+  default     = {}
 }
 
 variable "schedule_expression" {
